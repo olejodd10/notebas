@@ -25,10 +25,14 @@ fn main() {
             .help("Pad documents without merging them into one"))
         .get_matches();
 
-    let out_dir = Path::new(matches.value_of("dir").unwrap());
+    let source_dir = Path::new(matches.value_of("dir").unwrap());
     let padding_path = Path::new(matches.value_of("padding").unwrap());
+    let out_dir = source_dir.join("notebas");
+    if !out_dir.exists() {
+        std::fs::create_dir(&out_dir).expect("Error creating out_dir");
+    }
 
-    let mut local_documents = extension_matches_in_dir(out_dir, "pdf");
+    let mut local_documents = extension_matches_in_dir(source_dir, "pdf");
     local_documents.sort_by(|p1,p2| unwrap_filestem(p1).to_lowercase().cmp(&unwrap_filestem(p2).to_lowercase()));
 
     let document_groups = prefix_groups(&local_documents);
