@@ -168,11 +168,6 @@ fn load_documents<P: AsRef<Path>>(paths: &[P]) -> Vec<Document> {
 }
 
 pub fn merge_documents_from_paths<P: AsRef<Path>>(paths: &[P]) -> Document {
-    eprintln!("Prøver");
-    for path in paths {
-        eprintln!("{:?}", path.as_ref())
-    }
-    eprintln!("Og det var det");
     merge_documents(load_documents(paths))
 }
 

@@ -13,6 +13,7 @@ pub fn prefix_groups<P: AsRef<Path> + Clone>(paths: &[P]) -> Vec<(String, Vec<P>
         } 
         current_group.push(path.clone());
     }
+    prefix_groups.push((current_prefix, current_group.clone()));
     prefix_groups
 }
 
