@@ -3,16 +3,15 @@ use std::collections::BTreeMap;
 
 // All credit to https://crates.io/crates/lopdf
 
-use lopdf::content::{Content, Operation};
-use lopdf::{Document, Object, ObjectId, Stream};
+use lopdf::{Document, Object, ObjectId};
 
 
-pub fn merge_documents_from_paths<P: AsRef<Path>>(paths: &[P], out_path: P) {
-    let documents = paths.iter().map(|path| Document::load(path).expect("Error loading document")).collect();
-    merge_documents(documents, out_path)
+fn page_count(document: &Document) -> usize {
+    document.get_pages().keys().count()
 }
 
-fn merge_documents<P: AsRef<Path>>(documents: Vec<Document>, out_path: P) {
+
+pub fn merge_documents(documents: Vec<Document>) -> Document {
     // Define a starting max_id (will be used as start index for object_ids)
     let mut max_id = 1;
 
@@ -95,9 +94,7 @@ fn merge_documents<P: AsRef<Path>>(documents: Vec<Document>, out_path: P) {
 
     // If no "Pages" found abort
     if pages_object.is_none() {
-        println!("Pages root not found.");
-
-        return;
+        panic!("Pages root not found.");
     }
 
     // Iter over all "Page" and collect with the parent "Pages" created before
@@ -114,9 +111,7 @@ fn merge_documents<P: AsRef<Path>>(documents: Vec<Document>, out_path: P) {
 
     // If no "Catalog" found abort
     if catalog_object.is_none() {
-        println!("Catalog root not found.");
-
-        return;
+        panic!("Catalog root not found.");
     }
 
     let catalog_object = catalog_object.unwrap();
@@ -163,6 +158,28 @@ fn merge_documents<P: AsRef<Path>>(documents: Vec<Document>, out_path: P) {
     document.renumber_objects();
     document.compress();
 
-    // Save the merged PDF
-    document.save(out_path).unwrap();
+    // // Save the merged PDF
+    // document.save(out_path).unwrap();
+    document
+}
+
+fn load_documents<P: AsRef<Path>>(paths: &[P]) -> Vec<Document> {
+    paths.iter().map(|path| Document::load(path).expect("Error loading document")).collect()
+}
+
+pub fn merge_documents_from_paths<P: AsRef<Path>>(paths: &[P]) -> Document {
+    eprintln!("Prøver");
+    for path in paths {
+        eprintln!("{:?}", path.as_ref())
+    }
+    eprintln!("Og det var det");
+    merge_documents(load_documents(paths))
+}
+
+pub fn pad_odd_paged_document(document: Document, padding_document_path: &Path) -> Document {
+    if page_count(&document) % 2 != 0 {
+        merge_documents(vec![document, Document::load(padding_document_path).unwrap()])
+    } else {
+        document
+    }
 }
